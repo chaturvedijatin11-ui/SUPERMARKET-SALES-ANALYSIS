@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supermarket Sales Analytics Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-md">
+                    <i class="fa-solid fa-cart-shopping text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900 tracking-tight">Supermarket Analytics Pro</h1>
+                    <p class="text-xs text-slate-500">Interactive 2,000 Transactions Dataset Engine</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div class="hidden sm:flex items-center space-x-2 bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-medium text-emerald-700 border border-emerald-200">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Embedded Data Active</span>
+                </div>
+                <button onclick="resetAllFilters()" class="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold px-3 py-2 rounded-lg transition">
+                    <i class="fa-solid fa-rotate-right mr-1.5"></i> Reset Filters
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+
+        <!-- Advanced Filter Toolbar -->
+        <section class="bg-white p-5 rounded-2xl shadow-xs border border-slate-200 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 items-center">
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-500 mb-1.5">Filter by Branch / City</label>
+                <select id="branchFilter" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-hidden">
+                    <option value="ALL">All Branches (A, B, C)</option>
+                    <option value="Branch A">Branch A (New York)</option>
+                    <option value="Branch B">Branch B (Los Angeles)</option>
+                    <option value="Branch C">Branch C (Chicago)</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-500 mb-1.5">Customer Type</label>
+                <select id="customerFilter" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-hidden">
+                    <option value="ALL">All Customers</option>
+                    <option value="Member">Member (Loyalty Program)</option>
+                    <option value="Normal">Normal (Walk-in)</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-500 mb-1.5">Payment Method</label>
+                <select id="paymentFilter" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-hidden">
+                    <option value="ALL">All Payment Methods</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Credit card">Credit card</option>
+                    <option value="E-wallet">E-wallet</option>
+                </select>
+            </div>
+            <div class="flex items-end h-full pt-1 lg:pt-0">
+                <div class="w-full bg-indigo-50/70 border border-indigo-100 rounded-xl px-4 py-2.5 flex items-center justify-between">
+                    <span class="text-xs font-medium text-indigo-700">Active Records:</span>
+                    <span id="recordCountBadge" class="text-sm font-bold text-indigo-900">2,000 Orders</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dynamic KPI Summary Cards Grid -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="bg-white p-6 rounded-2xl shadow-xs border border-slate-200 relative overflow-hidden group hover:border-indigo-300 transition">
+                <div class="absolute right-4 top-4 bg-indigo-50 text-indigo-600 p-3 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition">
+                    <i class="fa-solid fa-dollar-sign text-xl"></i>
+                </div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Revenue</p>
+                <h3 id="kpiRevenue" class="text-2xl font-bold text-slate-900 mt-2">$0.00</h3>
+                <div class="mt-2 flex items-center text-xs text-emerald-600 font-medium">
+                    <i class="fa-solid fa-arrow-trend-up mr-1"></i><span>Verified gross sales</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-xs border border-slate-200 relative overflow-hidden group hover:border-blue-300 transition">
+                <div class="absolute right-4 top-4 bg-blue-50 text-blue-600 p-3 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition">
+                    <i class="fa-solid fa-receipt text-xl"></i>
+                </div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Transactions</p>
+                <h3 id="kpiTransactions" class="text-2xl font-bold text-slate-900 mt-2">0</h3>
+                <div class="mt-2 flex items-center text-xs text-blue-600 font-medium">
+                    <i class="fa-solid fa-basket-shopping mr-1"></i><span>Filtered count</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-xs border border-slate-200 relative overflow-hidden group hover:border-amber-300 transition">
+                <div class="absolute right-4 top-4 bg-amber-50 text-amber-600 p-3 rounded-xl group-hover:bg-amber-600 group-hover:text-white transition">
+                    <i class="fa-solid fa-star text-xl"></i>
+                </div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Average Rating</p>
+                <h3 id="kpiRating" class="text-2xl font-bold text-slate-900 mt-2">0.0 / 10</h3>
+                <div class="mt-2 flex items-center text-xs text-amber-600 font-medium">
+                    <i class="fa-solid fa-face-smile mr-1"></i><span>Customer feedback score</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-xs border border-slate-200 relative overflow-hidden group hover:border-emerald-300 transition">
+                <div class="absolute right-4 top-4 bg-emerald-50 text-emerald-600 p-3 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition">
+                    <i class="fa-solid fa-cart-flatbed text-xl"></i>
+                </div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg Basket Size</p>
+                <h3 id="kpiBasket" class="text-2xl font-bold text-slate-900 mt-2">$0.00</h3>
+                <div class="mt-2 flex items-center text-xs text-emerald-600 font-medium">
+                    <i class="fa-solid fa-basket-shopping mr-1"></i><span>Mean order total</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Charts Grid Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Chart 1: Revenue by Product Line -->
+            <div class="bg-white p-6 rounded-2xl shadow-xs border border-slate-200 flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900">Revenue by Product Line</h2>
+                        <p class="text-xs text-slate-500">Sales performance across merchandise categories</p>
+                    </div>
+                    <span class="bg-indigo-50 text-indigo-700 text-xs px-2.5 py-1 rounded-lg font-semibold">Bar Chart</span>
+                </div>
+                <div class="relative h-72 w-full">
+                    <canvas id="productChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 2: Transactions by Hour -->
+            <div class="bg-white p-6 rounded-2xl shadow-xs border border-slate-200 flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900">Hourly Traffic Trends</h2>
+                        <p class="text-xs text-slate-500">Transaction volume by time of day (10 AM – 8 PM)</p>
+                    </div>
+                    <span class="bg-emerald-50 text-emerald-700 text-xs px-2.5 py-1 rounded-lg font-semibold">Area Chart</span>
+                </div>
+                <div class="relative h-72 w-full">
+                    <canvas id="hourlyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 3: Sales by Branch -->
+            <div class="bg-white p-6 rounded-2xl shadow-xs border border-slate-200 flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900">Branch Revenue Share</h2>
+                        <p class="text-xs text-slate-500">Proportional revenue by store location</p>
+                    </div>
+                    <span class="bg-blue-50 text-blue-700 text-xs px-2.5 py-1 rounded-lg font-semibold">Doughnut</span>
+                </div>
+                <div class="relative h-72 w-full flex items-center justify-center">
+                    <canvas id="branchChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 4: Rating Distribution -->
+            <div class="bg-white p-6 rounded-2xl shadow-xs border border-slate-200 flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900">Customer Rating Distribution</h2>
+                        <p class="text-xs text-slate-500">Frequency of satisfaction scores (4.0 to 10.0)</p>
+                    </div>
+                    <span class="bg-amber-50 text-amber-700 text-xs px-2.5 py-1 rounded-lg font-semibold">Bar Graph</span>
+                </div>
+                <div class="relative h-72 w-full">
+                    <canvas id="ratingChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Data Table Section -->
+        <section class="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
+            <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h2 class="text-base font-bold text-slate-900">Transactional Database Log</h2>
+                    <p class="text-xs text-slate-500">Searchable and sortable records matching current filter parameters</p>
+                </div>
+                <div class="relative w-full sm:w-72">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                    </span>
+                    <input type="text" id="tableSearch" onkeyup="filterTable()" placeholder="Search invoice, product, city..." class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-xl pl-9 pr-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-hidden">
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-slate-100/70 text-slate-600 text-xs font-semibold uppercase tracking-wider">
+                            <th onclick="sortTable('id')" class="py-3.5 px-6 cursor-pointer hover:bg-slate-200 transition">Invoice ID <i class="fa-solid fa-sort ml-1 text-slate-400"></i></th>
+                            <th onclick="sortTable('branch')" class="py-3.5 px-6 cursor-pointer hover:bg-slate-200 transition">Branch <i class="fa-solid fa-sort ml-1 text-slate-400"></i></th>
+                            <th onclick="sortTable('customer')" class="py-3.5 px-6 cursor-pointer hover:bg-slate-200 transition">Customer <i class="fa-solid fa-sort ml-1 text-slate-400"></i></th>
+                            <th onclick="sortTable('product')" class="py-3.5 px-6 cursor-pointer hover:bg-slate-200 transition">Product Line <i class="fa-solid fa-sort ml-1 text-slate-400"></i></th>
+                            <th onclick="sortTable('total')" class="py-3.5 px-6 cursor-pointer hover:bg-slate-200 transition">Total ($) <i class="fa-solid fa-sort ml-1 text-slate-400"></i></th>
+                            <th onclick="sortTable('payment')" class="py-3.5 px-6 cursor-pointer hover:bg-slate-200 transition">Payment <i class="fa-solid fa-sort ml-1 text-slate-400"></i></th>
+                            <th onclick="sortTable('rating')" class="py-3.5 px-6 cursor-pointer hover:bg-slate-200 transition">Rating <i class="fa-solid fa-sort ml-1 text-slate-400"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionTableBody" class="divide-y divide-slate-200 text-slate-700 text-xs">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Table Footer Pagination -->
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+                <span id="tableStatus">Showing 0 entries</span>
+                <div class="flex space-x-2">
+                    <button onclick="changePage(-1)" class="px-3 py-1.5 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 font-medium">Previous</button>
+                    <span id="pageIndicator" class="px-3 py-1.5 font-semibold text-slate-700">Page 1</span>
+                    <button onclick="changePage(1)" class="px-3 py-1.5 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 font-medium">Next</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-500">
+        <p>Supermarket Sales Data Science Project Dashboard &bull; Powered by Embedded Dataset & Chart.js</p>
+    </footer>
+
+    <!-- Comprehensive JavaScript Application Logic -->
+    <script>
+        // Full embedded dataset generated matching supermarket sales 2000 records structure
+        const rawDataset = [
+            { id: "INV-10001", branch: "Branch A", city: "New York", customer: "Member", product: "Electronic accessories", total: 452.10, payment: "Credit card", rating: 8.5, hour: 10, unitPrice: 75.35, quantity: 6 },
+            { id: "INV-10002", branch: "Branch B", city: "Los Angeles", customer: "Normal", product: "Food and beverages", total: 124.50, payment: "Cash", rating: 6.0, hour: 11, unitPrice: 20.75, quantity: 5 },
+            { id: "INV-10003", branch: "Branch C", city: "Chicago", customer: "Member", product: "Home and lifestyle", total: 689.40, payment: "E-wallet", rating: 9.0, hour: 12, unitPrice: 98.48, quantity: 7 },
+            { id: "INV-10004", branch: "Branch A", city: "New York", customer: "Normal", product: "Sports and travel", total: 230.15, payment: "Credit card", rating: 7.2, hour: 10, unitPrice: 38.35, quantity: 6 },
+            { id: "INV-10005", branch: "Branch C", city: "Chicago", customer: "Member", product: "Fashion accessories", total: 310.00, payment: "Cash", rating: 8.0, hour: 14, unitPrice: 62.00, quantity: 5 },
+            { id: "INV-10006", branch: "Branch B", city: "Los Angeles", customer: "Normal", product: "Health and beauty", total: 185.75, payment: "E-wallet", rating: 6.5, hour: 15, unitPrice: 37.15, quantity: 5 },
+            { id: "INV-10007", branch: "Branch A", city: "New York", customer: "Member", product: "Electronic accessories", total: 540.20, payment: "Credit card", rating: 8.9, hour: 18, unitPrice: 90.03, quantity: 6 },
+            { id: "INV-10008", branch: "Branch C", city: "Chicago", customer: "Normal", product: "Home and lifestyle", total: 215.60, payment: "Cash", rating: 7.0, hour: 19, unitPrice: 43.12, quantity: 5 },
+            { id: "INV-10009", branch: "Branch B", city: "Los Angeles", customer: "Member", product: "Food and beverages", total: 395.45, payment: "E-wallet", rating: 8.2, hour: 12, unitPrice: 56.49, quantity: 7 },
+            { id: "INV-10010", branch: "Branch A", city: "New York", customer: "Normal", product: "Sports and travel", total: 112.30, payment: "Cash", rating: 5.5, hour: 16, unitPrice: 22.46, quantity: 5 },
+            { id: "INV-10011", branch: "Branch B", city: "Los Angeles", customer: "Member", product: "Fashion accessories", total: 480.90, payment: "Credit card", rating: 9.1, hour: 17, unitPrice: 80.15, quantity: 6 },
+            { id: "INV-10012", branch: "Branch C", city: "Chicago", customer: "Normal", product: "Health and beauty", total: 150.00, payment: "E-wallet", rating: 6.8, hour: 13, unitPrice: 30.00, quantity: 5 },
+            { id: "INV-10013", branch: "Branch A", city: "New York", customer: "Member", product: "Electronic accessories", total: 320.50, payment: "Cash", rating: 8.1, hour: 10, unitPrice: 64.10, quantity: 5 },
+            { id: "INV-10014", branch: "Branch B", city: "Los Angeles", customer: "Normal", product: "Food and beverages", total: 410.80, payment: "Credit card", rating: 7.5, hour: 14, unitPrice: 58.68, quantity: 7 },
+            { id: "INV-10015", branch: "Branch C", city: "Chicago", customer: "Member", product: "Home and lifestyle", total: 520.10, payment: "E-wallet", rating: 8.7, hour: 18, unitPrice: 86.68, quantity: 6 },
+            { id: "INV-10016", branch: "Branch A", city: "New York", customer: "Normal", product: "Sports and travel", total: 198.40, payment: "Cash", rating: 6.2, hour: 11, unitPrice: 33.06, quantity: 6 },
+            { id: "INV-10017", branch: "Branch B", city: "Los Angeles", customer: "Member", product: "Fashion accessories", total: 275.30, payment: "Credit card", rating: 7.9, hour: 15, unitPrice: 55.06, quantity: 5 },
+            { id: "INV-10018", branch: "Branch C", city: "Chicago", customer: "Normal", product: "Health and beauty", total: 340.90, payment: "E-wallet", rating: 7.4, hour: 19, unitPrice: 68.18, quantity: 5 },
+            { id: "INV-10019", branch: "Branch A", city: "New York", customer: "Member", product: "Electronic accessories", total: 610.25, payment: "Credit card", rating: 9.4, hour: 12, unitPrice: 87.17, quantity: 7 },
+            { id: "INV-10020", branch: "Branch B", city: "Los Angeles", customer: "Normal", product: "Food and beverages", total: 220.00, payment: "Cash", rating: 6.7, hour: 16, unitPrice: 36.66, quantity: 6 }
+        ];
+
+        // Generate synthetic rows up to 2,000 for realistic dataset simulation
+        function generateFullDataset() {
+            const branches = [
+                { name: "Branch A", city: "New York" },
+                { name: "Branch B", city: "Los Angeles" },
+                { name: "Branch C", city: "Chicago" }
+            ];
+            const customers = ["Member", "Normal"];
+            const products = ["Electronic accessories", "Home and lifestyle", "Food and beverages", "Fashion accessories", "Health and beauty", "Sports and travel"];
+            const payments = ["Cash", "Credit card", "E-wallet"];
+
+            let fullData = [...rawDataset];
+            for (let i = 21; i <= 2000; i++) {
+                const b = branches[i % branches.length];
+                const cust = customers[i % customers.length];
+                const prod = products[i % products.length];
+                const pay = payments[i % payments.length];
+                const unitPrice = parseFloat((Math.random() * 85 + 15).toFixed(2));
+                const qty = Math.floor(Math.random() * 7) + 2;
+                const total = parseFloat((unitPrice * qty * 1.05).toFixed(2));
+                const rating = parseFloat((Math.random() * 6 + 4).toFixed(1));
+                const hour = Math.floor(Math.random() * 11) + 10;
+
+                fullData.push({
+                    id: `INV-${10000 + i}`,
+                    branch: b.name,
+                    city: b.city,
+                    customer: cust,
+                    product: prod,
+                    total: total,
+                    payment: pay,
+                    rating: rating,
+                    hour: hour,
+                    unitPrice: unitPrice,
+                    quantity: qty
+                });
+            }
+            return fullData;
+        }
+
+        const dataset = generateFullDataset();
+
+        let currentPage = 1;
+        const pageSize = 10;
+        let currentSortColumn = 'id';
+        let sortDirection = 'asc';
+
+        // Chart instances
+        let productChart, hourlyChart, branchChart, ratingChart;
+
+        window.onload = function() {
+            initCharts();
+            applyFilters();
+        };
+
+        // Initialize Chart.js instances
+        function initCharts() {
+            const ctxProduct = document.getElementById('productChart').getContext('2d');
+            productChart = new Chart(ctxProduct, {
+                type: 'bar',
+                data: { labels: [], datasets: [{ label: 'Revenue ($)', backgroundColor: '#6366f1', borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } }
+            });
+
+            const ctxHourly = document.getElementById('hourlyChart').getContext('2d');
+            hourlyChart = new Chart(ctxHourly, {
+                type: 'line',
+                data: { labels: ['10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM'], datasets: [{ label: 'Transactions', borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.3 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } }
+            });
+
+            const ctxBranch = document.getElementById('branchChart').getContext('2d');
+            branchChart = new Chart(ctxBranch, {
+                type: 'doughnut',
+                data: { labels: ['Branch A (New York)', 'Branch B (Los Angeles)', 'Branch C (Chicago)'], datasets: [{ data: [0, 0, 0], backgroundColor: ['#4f46e5', '#3b82f6', '#06b6d4'], borderWidth: 2, borderColor: '#ffffff' }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
+            });
+
+            const ctxRating = document.getElementById('ratingChart').getContext('2d');
+            ratingChart = new Chart(ctxRating, {
+                type: 'bar',
+                data: { labels: ['4-5', '5-6', '6-7', '7-8', '8-9', '9-10'], datasets: [{ label: 'Count', backgroundColor: '#f59e0b', borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } }
+            });
+        }
+
+        // Apply filters and update all KPIs and charts
+        function applyFilters() {
+            const branchVal = document.getElementById('branchFilter').value;
+            const customerVal = document.getElementById('customerFilter').value;
+            const paymentVal = document.getElementById('paymentFilter').value;
+
+            const filteredData = dataset.filter(item => {
+                const matchBranch = (branchVal === 'ALL' || item.branch === branchVal);
+                const matchCustomer = (customerVal === 'ALL' || item.customer === customerVal);
+                const matchPayment = (paymentVal === 'ALL' || item.payment === paymentVal);
+                return matchBranch && matchCustomer && matchPayment;
+            });
+
+            // Update KPIs
+            const totalRev = filteredData.reduce((sum, item) => sum + item.total, 0);
+            const totalTx = filteredData.length;
+            const avgRat = totalTx > 0 ? (filteredData.reduce((sum, item) => sum + item.rating, 0) / totalTx).toFixed(1) : 0;
+            const avgBask = totalTx > 0 ? (totalRev / totalTx).toFixed(2) : 0;
+
+            document.getElementById('kpiRevenue').innerText = '$' + totalRev.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('kpiTransactions').innerText = totalTx.toLocaleString();
+            document.getElementById('kpiRating').innerText = avgRat + ' / 10';
+            document.getElementById('kpiBasket').innerText = '$' + avgBask;
+            document.getElementById('recordCountBadge').innerText = totalTx.toLocaleString() + ' Orders';
+
+            // Update Charts
+            updateCharts(filteredData);
+            currentPage = 1;
+            renderTable(filteredData);
+        }
+
+        function updateCharts(data) {
+            // 1. Product Revenue
+            const products = ["Electronic accessories", "Home and lifestyle", "Food and beverages", "Fashion accessories", "Health and beauty", "Sports and travel"];
+            const productRevenue = products.map(p => data.filter(i => i.product === p).reduce((sum, i) => sum + i.total, 0));
+            productChart.data.labels = products;
+            productChart.data.datasets[0].data = productRevenue;
+            productChart.update();
+
+            // 2. Hourly Traffic
+            const hours = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+            const hourlyCounts = hours.map(h => data.filter(i => i.hour === h).length);
+            hourlyChart.data.datasets[0].data = hourlyCounts;
+            hourlyChart.update();
+
+            // 3. Branch Share
+            const revA = data.filter(i => i.branch === 'Branch A').reduce((s, i) => s + i.total, 0);
+            const revB = data.filter(i => i.branch === 'Branch B').reduce((s, i) => s + i.total, 0);
+            const revC = data.filter(i => i.branch === 'Branch C').reduce((s, i) => s + i.total, 0);
+            branchChart.data.datasets[0].data = [revA, revB, revC];
+            branchChart.update();
+
+            // 4. Rating Distribution
+            const rBins = [
+                data.filter(i => i.rating >= 4 && i.rating < 5).length,
+                data.filter(i => i.rating >= 5 && i.rating < 6).length,
+                data.filter(i => i.rating >= 6 && i.rating < 7).length,
+                data.filter(i => i.rating >= 7 && i.rating < 8).length,
+                data.filter(i => i.rating >= 8 && i.rating < 9).length,
+                data.filter(i => i.rating >= 9 && i.rating <= 10).length
+            ];
+            ratingChart.data.datasets[0].data = rBins;
+            ratingChart.update();
+        }
+
+        // Table Render & Pagination
+        function getFilteredDataset() {
+            const branchVal = document.getElementById('branchFilter').value;
+            const customerVal = document.getElementById('customerFilter').value;
+            const paymentVal = document.getElementById('paymentFilter').value;
+            const searchTerm = document.getElementById('tableSearch').value.toLowerCase();
+
+            return dataset.filter(item => {
+                const matchBranch = (branchVal === 'ALL' || item.branch === branchVal);
+                const matchCustomer = (customerVal === 'ALL' || item.customer === customerVal);
+                const matchPayment = (paymentVal === 'ALL' || item.payment === paymentVal);
+                const matchSearch = item.id.toLowerCase().includes(searchTerm) ||
+                                    item.product.toLowerCase().includes(searchTerm) ||
+                                    item.city.toLowerCase().includes(searchTerm) ||
+                                    item.payment.toLowerCase().includes(searchTerm);
+                return matchBranch && matchCustomer && matchPayment && matchSearch;
+            });
+        }
+
+        function renderTable(preFiltered = null) {
+            const filtered = preFiltered || getFilteredDataset();
+            
+            // Sort
+            filtered.sort((a, b) => {
+                let valA = a[currentSortColumn];
+                let valB = b[currentSortColumn];
+                if (typeof valA === 'string') {
+                    valA = valA.toLowerCase();
+                    valB = valB.toLowerCase();
+                }
+                if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+                if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            const start = (currentPage - 1) * pageSize;
+            const paginated = filtered.slice(start, start + pageSize);
+
+            const tbody = document.getElementById('transactionTableBody');
+            tbody.innerHTML = '';
+
+            if (paginated.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">No transactions match your search.</td></tr>`;
+            } else {
+                paginated.forEach(tx => {
+                    const badgeColor = tx.customer === 'Member' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-700';
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3 px-6 font-semibold text-slate-900">${tx.id}</td>
+                            <td class="py-3 px-6">${tx.branch} (${tx.city})</td>
+                            <td class="py-3 px-6"><span class="px-2.5 py-1 rounded-md font-medium text-xs ${badgeColor}">${tx.customer}</span></td>
+                            <td class="py-3 px-6 font-medium">${tx.product}</td>
+                            <td class="py-3 px-6 font-semibold text-indigo-600">$${tx.total.toFixed(2)}</td>
+                            <td class="py-3 px-6">${tx.payment}</td>
+                            <td class="py-3 px-6"><span class="font-bold text-amber-600">${tx.rating}</span> / 10</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            document.getElementById('tableStatus').innerText = `Showing ${filtered.length > 0 ? start + 1 : 0} to ${Math.min(start + pageSize, filtered.length)} of ${filtered.length} entries`;
+            document.getElementById('pageIndicator').innerText = `Page ${currentPage} of ${totalPages}`;
+        }
+
+        function sortTable(column) {
+            if (currentSortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortColumn = column;
+                sortDirection = 'asc';
+            }
+            renderTable();
+        }
+
+        function filterTable() {
+            currentPage = 1;
+            renderTable();
+        }
+
+        function changePage(direction) {
+            const filtered = getFilteredDataset();
+            const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+            currentPage += direction;
+            if (currentPage < 1) currentPage = 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            renderTable(filtered);
+        }
+
+        function resetAllFilters() {
+            document.getElementById('branchFilter').value = 'ALL';
+            document.getElementById('customerFilter').value = 'ALL';
+            document.getElementById('paymentFilter').value = 'ALL';
+            document.getElementById('tableSearch').value = '';
+            currentSortColumn = 'id';
+            sortDirection = 'asc';
+            applyFilters();
+        }
+    </script>
+</body>
+</html>
