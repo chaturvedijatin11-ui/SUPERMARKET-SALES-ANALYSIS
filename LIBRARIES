@@ -1,0 +1,5 @@
+Library         	Main Use in Project
+Pandas        -	  Data loading, cleaning and analysis
+NumPy         - 	Numerical and statistical calculations
+Matplotlib    - 	Basic charts and graphs
+Seaborn	      -   Statistical charts and data patterns
